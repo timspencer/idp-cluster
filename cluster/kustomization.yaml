@@ -1,4 +1,4 @@
 bases:
   - ./flagger/
   - ./common/
-  - ./team1/
+  - ./idp-dev/

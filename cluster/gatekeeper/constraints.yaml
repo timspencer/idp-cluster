@@ -5,7 +5,7 @@ metadata:
 spec:
   match:
     namespaces:
-      - team1
+      - idp-dev
     kinds:
       - apiGroups: ["apps"]
         kinds: ["Deployment"]

@@ -16,12 +16,12 @@ custom resources definitions or change something in another team namespace.
 First you'll have to create two git repositories:
 
 * a clone of [fluxcd-multi-tenancy](https://github.com/fluxcd/multi-tenancy) repository for the cluster admins, I will refer to it as `org/dev-cluster`
-* a clone of [fluxcd-multi-tenancy-team1](https://github.com/fluxcd/multi-tenancy-team1) repository for the dev team1, I will refer to it as `org/dev-team1`
+* a clone of [fluxcd-multi-tenancy-idp-dev](https://github.com/fluxcd/multi-tenancy-idp-dev) repository for the dev idp-dev, I will refer to it as `org/dev-idp-dev`
 
 | Team      | Namespace   | Git Repository        | Flux RBAC
 | --------- | ----------- | --------------------- | ---------------
 | ADMIN     | all         | org/dev-cluster       | Cluster wide e.g. namespaces, CRDs, Flux controllers
-| DEV-TEAM1 | team1       | org/dev-team1         | Namespace scoped e.g. deployments, custom resources
+| DEV-idp-dev | idp-dev       | org/dev-idp-dev         | Namespace scoped e.g. deployments, custom resources
 | DEV-TEAM2 | team2       | org/dev-team2         | Namespace scoped e.g. ingress, services, network policies
 
 Cluster admin repository structure:
@@ -35,7 +35,7 @@ Cluster admin repository structure:
 │   ├── common
 │   │   ├── crds.yaml
 │   │   └── kustomization.yaml
-│   └── team1
+│   └── idp-dev
 │       ├── flux-patch.yaml
 │       ├── kubeconfig.yaml
 │       ├── kustomization.yaml
@@ -59,7 +59,7 @@ commandUpdated:
     - command: kustomize build .
 ```
 
-Development team1 repository structure:
+Development idp-dev repository structure:
 
 ```
 ├── .flux.yaml 
@@ -76,7 +76,7 @@ Development team1 repository structure:
         └── service.yaml
 ```
 
-The `workloads` folder contains the desired state of the `team1` namespace and the `flux-patch.yaml` contains the 
+The `workloads` folder contains the desired state of the `idp-dev` namespace and the `flux-patch.yaml` contains the 
 Flux annotations that define how the container images should be updated.
 
 With `.flux.yaml` we configure Flux to run Kustomize build, apply the container update policies and deploy the generated manifests:
@@ -115,33 +115,33 @@ Add the public key to the `github.com:org/dev-cluster` repository deploy keys wi
 
 The cluster wide Flux will do the following:
 * creates the cluster objects from `cluster/common` directory (CRDs, cluster roles, etc)
-* creates the `team1` namespace and deploys a Flux instance with restricted access to that namespace
+* creates the `idp-dev` namespace and deploys a Flux instance with restricted access to that namespace
 
 ### Install a Flux per team
 
-Change the dev team1 git URL:
+Change the dev idp-dev git URL:
 
 ```bash
-vim ./cluster/team1/flux-patch.yaml
+vim ./cluster/idp-dev/flux-patch.yaml
 
---git-url=git@github.com:org/dev-team1
+--git-url=git@github.com:org/dev-idp-dev
 ```
 
-When you commit your changes, the system Flux will configure the team1's Flux to sync with `org/dev-team1` repository.
+When you commit your changes, the system Flux will configure the idp-dev's Flux to sync with `org/dev-idp-dev` repository.
 
-Get the public SSH key for team1 with:
+Get the public SSH key for idp-dev with:
 
 ```bash
-fluxctl --k8s-fwd-ns=team1 identity
+fluxctl --k8s-fwd-ns=idp-dev identity
 ```
 
-Add the public key to the `github.com:org/dev-team1` deploy keys with write access. The team1's Flux
-will apply the manifests from `org/dev-team1` repository only in the `team1` namespace, this is enforced with RBAC and role bindings.
+Add the public key to the `github.com:org/dev-idp-dev` deploy keys with write access. The idp-dev's Flux
+will apply the manifests from `org/dev-idp-dev` repository only in the `idp-dev` namespace, this is enforced with RBAC and role bindings.
 
-If team1 needs to deploy a controller that depends on a CRD or a cluster role, they'll 
+If idp-dev needs to deploy a controller that depends on a CRD or a cluster role, they'll 
 have to open a PR in the `org/dev-cluster`repository and add those cluster wide objects in the `cluster/common` directory.
 
-The team1's Flux instance can be customised with different options than the system Flux using the `cluster/team1/flux-patch.yaml`. 
+The idp-dev's Flux instance can be customised with different options than the system Flux using the `cluster/idp-dev/flux-patch.yaml`. 
 
 ```yaml
 apiVersion: apps/v1
@@ -160,8 +160,8 @@ spec:
             - --git-poll-interval=5m
             - --sync-interval=5m
             - --ssh-keygen-dir=/var/fluxd/keygen
-            - --k8s-allow-namespace=team1
-            - --git-url=git@github.com:org/dev-team1
+            - --k8s-allow-namespace=idp-dev
+            - --git-url=git@github.com:org/dev-idp-dev
             - --git-branch=master
 ``` 
 
@@ -179,7 +179,7 @@ You can deploy Flagger by including its manifests in the `cluster/kustomization.
 bases:
   - ./flagger/
   - ./common/
-  - ./team1/
+  - ./idp-dev/
 ```
 
 Commit the changes to git and wait for system Flux to install Flagger and Prometheus:
@@ -193,7 +193,7 @@ flagger-64c6945d5b-4zgvh              1/1     Running
 flagger-prometheus-6f6b558b7c-22kw5   1/1     Running
 ```
 
-A team member can now push canary objects to `org/dev-team1` repository and Flagger will automate the deployment process. 
+A team member can now push canary objects to `org/dev-idp-dev` repository and Flagger will automate the deployment process. 
 
 Flagger can notify your teams when a canary deployment has been initialised, 
 when a new revision has been detected and if the canary analysis failed or succeeded.
@@ -225,13 +225,13 @@ a cluster admin can define a set of conditions that a pod must run with in order
 
 For example you can forbid a team from creating privileged containers or use the host network.
 
-Edit the team1 pod security policy `cluster/team1/psp.yaml`:
+Edit the idp-dev pod security policy `cluster/idp-dev/psp.yaml`:
 
 ```yaml
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: default-psp-team1
+  name: default-psp-idp-dev
   annotations:
     seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
 spec:
@@ -254,13 +254,13 @@ spec:
     - '*'
 ```
 
-Set privileged, hostIPC, hostNetwork and hostPID to false and commit the change to git. From this moment on, team1 will 
+Set privileged, hostIPC, hostNetwork and hostPID to false and commit the change to git. From this moment on, idp-dev will 
 not be able to run containers with an elevated security context under the default service account.
 
-If a team member adds a privileged container definition in the `org/dev-team1` repository, Kubernetes will deny it:
+If a team member adds a privileged container definition in the `org/dev-idp-dev` repository, Kubernetes will deny it:
 
 ```bash
-kubectl -n team1 describe replicasets podinfo-5d7d9fc9d5
+kubectl -n idp-dev describe replicasets podinfo-5d7d9fc9d5
 
 Error creating: pods "podinfo-5d7d9fc9d5-" is forbidden: unable to validate against any pod security policy:
 [spec.containers[0].securityContext.privileged: Invalid value: true: Privileged containers are not allowed]
@@ -280,13 +280,13 @@ bases:
   - ./gatekeeper/
   - ./flagger/
   - ./common/
-  - ./team1/
+  - ./idp-dev/
 ```
 
 Inside the gatekeeper dir there is a constraint template that instructs OPA to reject Kubernetes deployments if no 
 container resources are specified.
 
-Enable the constraint for team1 by editing the `cluster/gatekeeper/constraints.yaml` file:
+Enable the constraint for idp-dev by editing the `cluster/gatekeeper/constraints.yaml` file:
 
 ```yaml
 apiVersion: constraints.gatekeeper.sh/v1alpha1
@@ -296,7 +296,7 @@ metadata:
 spec:
   match:
     namespaces:
-      - team1
+      - idp-dev
     kinds:
       - apiGroups: ["apps"]
         kinds: ["Deployment"]
@@ -310,10 +310,10 @@ fluxctl --k8s-fwd-ns=flux-system sync
 watch kubectl -n gatekeeper-system get po
 ```
 
-If a team member adds a deployment without CPU or memory resources in the `org/dev-team1` repository, Gatekeeper will deny it:
+If a team member adds a deployment without CPU or memory resources in the `org/dev-idp-dev` repository, Gatekeeper will deny it:
 
 ```bash
-kubectl -n team1 logs deploy/flux
+kubectl -n idp-dev logs deploy/flux
 
 admission webhook "validation.gatekeeper.sh" denied the request: 
 [denied by containerresources] container <podinfo> has no memory requests
