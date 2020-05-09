@@ -15,7 +15,7 @@ spec:
             - --sync-interval=5m
             - --ssh-keygen-dir=/var/fluxd/keygen
             - --k8s-allow-namespace=team1
-            - --git-url=git@github.com:org/dev-team1
+            - --git-url=git@github.com:timspencer/idp-dev
             - --git-branch=master
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
