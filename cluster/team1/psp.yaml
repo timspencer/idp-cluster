@@ -5,16 +5,16 @@ metadata:
   annotations:
     seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
 spec:
-  privileged: true
+  privileged: false
   readOnlyRootFilesystem: false
-  allowPrivilegeEscalation: true
+  allowPrivilegeEscalation: false
   allowedCapabilities:
     - '*'
   fsGroup:
     rule: RunAsAny
-  hostIPC: true
-  hostNetwork: true
-  hostPID: true
+  hostIPC: false
+  hostNetwork: false
+  hostPID: false
   hostPorts:
     - max: 65535
       min: 1
