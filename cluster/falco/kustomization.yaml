@@ -1,3 +1,4 @@
+namespace: falco
 resources:
   - falco.yml
   - falco-namespace.yml
