@@ -1,4 +1,5 @@
 bases:
   - ./flagger/
+  - ./falco/
   - ./common/
   - ./idp-dev/
