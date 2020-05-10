@@ -6,7 +6,7 @@
 
 helm repo add stable https://kubernetes-charts.storage.googleapis.com/
 helm repo update
-kubectl config set-context --current --namespace=falco
+kubectl config set-context --current --namespace=kube-system
 
 helm template --name-template=falco stable/falco -f falco-values.yml > falco.yml
 

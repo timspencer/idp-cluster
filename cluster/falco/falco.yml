@@ -2186,7 +2186,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: falco
-    namespace: falco
+    namespace: kube-system
 roleRef:
   kind: ClusterRole
   name: falco
