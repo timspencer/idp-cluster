@@ -2,5 +2,6 @@ bases:
   - ./flagger/
   - ./falco/
   # - ./clamav/
+  # - ./elk/
   - ./common/
   - ./idp-dev/
