@@ -17,6 +17,8 @@ spec:
             - --k8s-allow-namespace=idp-dev
             - --git-url=git@github.com:timspencer/idp-dev
             - --git-branch=master
+            - --sync-garbage-collection
+            - --git-readonly
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
