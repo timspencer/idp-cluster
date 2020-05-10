@@ -1,5 +1,6 @@
 bases:
   - ./flagger/
   - ./falco/
+  # - ./clamav/
   - ./common/
   - ./idp-dev/
