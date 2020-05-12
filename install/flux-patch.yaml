@@ -17,5 +17,5 @@ spec:
             - --git-branch=master
             - --git-path=cluster
             - --git-url=git@github.com:timspencer/idp-cluster
-            - --sync-garbage-collection
+            - --sync-garbage-collection=fluxd
             - --git-readonly
